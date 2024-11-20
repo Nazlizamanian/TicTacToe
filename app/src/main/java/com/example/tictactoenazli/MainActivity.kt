@@ -62,6 +62,8 @@ class MainActivity : ComponentActivity() {
                         composable(route = Screen.GameScreen.route) {
                             GameScreen(navController = navController)
                         }
+
+
                     }
 
                 }
@@ -70,14 +72,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-data class Player(
-    //val read only sätt 1 gång
-    //använd dokument id sedan ist för sträng.
-    var playerId: String ="", //var är changable,
-    var playerName: String= "",
-    var invitation: String = "",
-    var score: Int = 0
-)
 
 @Composable
 fun MainScreen(navController: NavController){
