@@ -81,7 +81,7 @@ fun NewPlayerScreen(navController: NavController, model: GameModel) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Welcome to Robins TicTacToe!")
+            Text("Welcome to TicTacToe!")
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -227,7 +227,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
         }
     } else {
         Log.e(
-            "RobinError",
+            "Error",
             "Error Game not found: $gameId"
         )
         navController.navigate("lobby")
