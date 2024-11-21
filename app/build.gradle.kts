@@ -69,6 +69,7 @@ dependencies {
 
     implementation("androidx.navigation:navigation-runtime-ktx:2.8.3")
     implementation("androidx.navigation:navigation-compose:2.8.3")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-common:19.1.0")
 
 
     testImplementation("junit:junit:4.13.2")
