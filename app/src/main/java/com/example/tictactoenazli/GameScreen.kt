@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +57,12 @@ import org.w3c.dom.Text
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameScreen(navController: NavController) {
-    val db = Firebase.firestore //initisera ref t databasen, används för o fetcha
-    val playersList = remember { mutableStateOf<List<Player>>(emptyList()) } //håller en lista of player objs
-    //
+    val db = Firebase.firestore // Initialize database reference
+    val playersList = remember { MutableStateFlow<List<Player>>(emptyList()) } // StateFlow for players list
+
+    // Collect playersList StateFlow as State for Composables
+    val players by playersList.collectAsState()
+
     // Fetch players data from Firestore
     LaunchedEffect(true) {
         db.collection("players")
@@ -67,31 +71,25 @@ fun GameScreen(navController: NavController) {
                     return@addSnapshotListener
                 }
                 value?.let {
-                    playersList.value = it.toObjects(Player::class.java) //konvertera snapshot t lista av player obj
-
+                    playersList.value = it.toObjects(Player::class.java) // Convert snapshot to a list of Player objects
                 }
             }
     }
 
-   // val players by playersList.collectAsState()
-
     // Board State
     val boardState = remember { mutableStateOf(List(9) { "" }) }
-    val currentPlayer = remember { mutableStateOf("X") } //hmmm index1?
+    val currentPlayer = remember { mutableStateOf("X") }
     val gameStatus = remember { mutableStateOf("Game In Progress") }
     val gameCount = remember { mutableStateOf(1) }
-
     val shouldResetBoard = remember { mutableStateOf(false) }
 
     fun resetBoard() {
-        boardState.value = List(9){ ""}
+        boardState.value = List(9) { "" }
     }
 
     fun updateScore(winner: String) {
-
+        // Implement score update logic
     }
-
-
 
     // Handle cell click
     fun onCellClick(index: Int) {
@@ -102,9 +100,9 @@ fun GameScreen(navController: NavController) {
 
             if (checkWin(newBoardState)) {
                 val winningPlayer = if (currentPlayer.value == "X") {
-                    playersList.value.getOrNull(0)?.playerName ?: "Player 1"
+                    players.getOrNull(0)?.playerName ?: "Player 1"
                 } else {
-                    playersList.value.getOrNull(1)?.playerName ?: "Player 2"
+                    players.getOrNull(1)?.playerName ?: "Player 2"
                 }
                 gameStatus.value = "$winningPlayer Wins!"
 
@@ -112,7 +110,6 @@ fun GameScreen(navController: NavController) {
                 updateScore(currentPlayer.value)
 
                 if (gameCount.value >= 3) {
-                    gameStatus.value = "$winningPlayer Wins!" //fixa detta
                     gameStatus.value = "Match Over!"
                 } else {
                     gameCount.value++
@@ -133,7 +130,8 @@ fun GameScreen(navController: NavController) {
             }
         }
     }
-    //Effekt i mellan ronderna .7s mellan varje rond innan den rensar bordet.
+
+    // Effect between rounds
     LaunchedEffect(shouldResetBoard.value) {
         if (shouldResetBoard.value) {
             delay(700L)
@@ -144,8 +142,6 @@ fun GameScreen(navController: NavController) {
     }
 
 
-
-    //Game board
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -157,59 +153,71 @@ fun GameScreen(navController: NavController) {
         Text(text = gameStatus.value, style = typography.titleLarge)
         Spacer(modifier = Modifier.padding(10.dp))
 
-        if(playersList.value.isNotEmpty()){
-            val currentPlayerName = if(currentPlayer.value == "X"){
-                playersList.value.getOrNull(0)?.playerName ?: "Player 1"
+        if (players.isNotEmpty()) {
+            val currentPlayerName = if (currentPlayer.value == "X") {
+                players.getOrNull(0)?.playerName ?: "Player 1"
+            } else {
+                players.getOrNull(1)?.playerName ?: "Player 2"
             }
-            else{
-                playersList.value.getOrNull(1)?.playerName ?: "Player 2"
-            }
-            Text( text = "${currentPlayerName}'s Turn",  style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
+            Text(
+                text = "${currentPlayerName}'s Turn",
+                style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            )
         }
-        Text( text = "Round ${gameCount.value}/3",  style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center))
+        Text(
+            text = "Round ${gameCount.value}/3",
+            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        )
 
         Spacer(modifier = Modifier.padding(10.dp))
 
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp)
         ) {
-            if (playersList.value.isNotEmpty()) {
-                Box(modifier = Modifier
-                    .padding(5.dp)
-                    .size(100.dp)
-                    .background( color = Color.White, RoundedCornerShape(13.dp)),
+            if (players.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(100.dp)
+                        .background(color = Color.White, RoundedCornerShape(13.dp)),
                     contentAlignment = Alignment.Center
-                ){
-                    val player = playersList.value.getOrNull(0)
+                ) {
+                    val player = players.getOrNull(0)
                     Text(
                         text = "${player?.playerName ?: "Loading..."}\n${player?.score ?: 0}",
                         style = TextStyle(
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
-                            color = BabyPink)
+                            color = BabyPink
+                        )
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
 
-                Box(modifier = Modifier
-                    .padding(5.dp)
-                    .size(100.dp)
-                    .background(color = Color.White, RoundedCornerShape(13.dp)),
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(100.dp)
+                        .background(color = Color.White, RoundedCornerShape(13.dp)),
                     contentAlignment = Alignment.Center
-                ){
-                    val player = playersList.value.getOrNull(1)
+                ) {
+                    val player = players.getOrNull(1)
                     Text(
                         text = "${player?.playerName ?: "Loading..."}\n${player?.score ?: 1}",
-                        style = TextStyle(fontSize = 24.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold, color = BabyPink)
+                        style = TextStyle(
+                            fontSize = 24.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            color = BabyPink
+                        )
                     )
-
                 }
-
             }
         }
-
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -227,7 +235,7 @@ fun GameScreen(navController: NavController) {
                 ) {
                     Text(
                         text = boardState.value[index],
-                        style = TextStyle(fontSize= 83.sp, color = BabyPink),
+                        style = TextStyle(fontSize = 83.sp, color = BabyPink),
                         modifier = Modifier.fillMaxSize(),
                         textAlign = TextAlign.Center
                     )
@@ -236,7 +244,6 @@ fun GameScreen(navController: NavController) {
         }
     }
 }
-
 
 //GAme logic
 fun checkWin(board: List<String>): Boolean {
