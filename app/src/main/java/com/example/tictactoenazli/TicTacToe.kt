@@ -66,14 +66,27 @@ fun TicTacToe2() {
 //    val players by playerMap.asStateFlow().collectAsStateWithLifecycle()
 //    val games by gameMap.asStateFlow().collectAsStateWithLifecycle()
 
-    NavHost(navController = navController, startDestination = "player") {
-        composable("player") { NewPlayerScreen(navController, model) }
-        composable("lobby") { LobbyScreen(navController, model) }
-        composable("game/{gameId}") { backStackEntry ->
+    NavHost(navController = navController, startDestination = Screen.NewPlayerScreen.route) {
+        composable(Screen.NewPlayerScreen.route) {
+            NewPlayerScreen(navController, model)
+        }
+
+        composable(Screen.LobbyScreen.route) {
+            LobbyScreen(navController, model)
+        }
+        composable("${Screen.GameScreen.route}/{gameId}") { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString("gameId")
             GameScreen(navController, model, gameId)
         }
+        /*
+        composable(Screen.ResultScreen.route) {
+            ResultScreen(navController, model)
+        }
+        composable(Screen.MainScreen.route) {
+            MainScreen(navController, model)
+        }*/
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,9 +161,7 @@ fun NewPlayerScreen(navController: NavController, model: GameModel) {
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Create Player", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
-
+                Text(text = "Create Player", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
             }
 
         }
