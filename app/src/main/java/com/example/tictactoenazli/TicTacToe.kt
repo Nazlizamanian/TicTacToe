@@ -24,9 +24,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -93,44 +96,63 @@ fun NewPlayerScreen(navController: NavController, model: GameModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(BabyPink)
                 .padding(16.dp),
+
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Welcome to TicTacToe!")
+            Text(text = "Welcome to TicTacToe", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold))
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
+            TextField(
                 value = playerName,
                 onValueChange = { playerName = it },
                 label = { Text("Enter your name") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(13.dp))
+                    .padding(8.dp),
+                colors = TextFieldDefaults.textFieldColors(
+                    textColor = Color.Black,
+                    containerColor = Color.White, //bakgrund
+                    focusedIndicatorColor = Color.Blue,
+                    unfocusedIndicatorColor = Color.Gray
+                )
             )
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { if (playerName.isNotBlank()) {
-                    // Create new player in Firestore
-                    val newPlayer = Player(name = playerName)
-                    model.db.collection("players").add(newPlayer).addOnSuccessListener { documentRef ->
-                        val newPlayerId = documentRef.id
-
-                        // Save playerId in SharedPreferences
-                        sharedPreferences.edit().putString("playerId", newPlayerId).apply()
-
-                        // Update local variable and navigate to lobby
-                        model.localPlayerId.value = newPlayerId
-                        navController.navigate("lobby")
-                    }.addOnFailureListener { error ->
-                        Log.e("RobinError", "Error creating player: ${error.message}")
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .clickable {
+                        if (playerName.isNotBlank()) {
+                            // Create new player in Firestore
+                            val newPlayer = Player(name = playerName)
+                            model.db.collection("players").add(newPlayer).addOnSuccessListener { documentRef ->
+                                val newPlayerId = documentRef.id
+                                // Save playerId in SharedPreferences
+                                sharedPreferences.edit().putString("playerId", newPlayerId).apply()
+                                // Update local variable and navigate to lobby
+                                model.localPlayerId.value = newPlayerId
+                                navController.navigate("lobby")
+                            }.addOnFailureListener { error ->
+                                Log.e("Error", "Error creating player: ${error.message}")
+                            }
+                        }
                     }
-                } },
-                modifier = Modifier.fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text("Create Player")
+                Text(
+                    text = "Create Player", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+
             }
+
         }
     }
 }
