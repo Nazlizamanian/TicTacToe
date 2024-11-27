@@ -29,7 +29,6 @@ class GameModel: ViewModel() {
     val gameMap = MutableStateFlow<Map<String, Game>>(emptyMap())
 
     fun initGame() {
-
         // Listen for players
         db.collection("players")
             .addSnapshotListener { value, error ->
@@ -57,6 +56,24 @@ class GameModel: ViewModel() {
                     gameMap.value = updatedMap
                 }
             }
+    }
+
+
+    fun checkWinner(board: List<Int>): Boolean {
+        var win = true
+
+        if (board[0] == 1 && board[1] == 1 && board[2] == 1) win = true //rader
+        if (board[3] == 1 && board[4] == 1 && board[5] == 1) win = true
+        if (board[6] == 1 && board[7] == 1 && board[8] == 1) win = true
+
+        if (board[0] == 1 && board[3] == 1 && board[6] == 1) win = true // KOlumn
+        if (board[1] == 1 && board[4] == 1 && board[7] == 1) win = true
+        if (board[2] == 1 && board[5] == 1 && board[8] == 1) win = true
+
+        if (board[0] == 1 && board[4] == 1 && board[8] == 1) win = true //// Diagonal
+        if (board[2] == 1 && board[4] == 1 && board[6] == 1) win = true
+
+        return win
     }
 }
 //
