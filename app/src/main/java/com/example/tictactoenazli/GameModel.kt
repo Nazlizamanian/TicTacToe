@@ -59,21 +59,73 @@ class GameModel: ViewModel() {
     }
 
 
-    fun checkWinner(board: List<Int>): Boolean {
-        var win = true
+    fun checkWinner(board: List<Int>): Int {
+        //rader
+        for (i in 0..2) {
+            if (board[i * 3] != 0 && board[i * 3] == board[i * 3 + 1] && board[i * 3] == board[i * 3 + 2]) {
+                return board[i * 3]
+            }
+        }
 
-        if (board[0] == 1 && board[1] == 1 && board[2] == 1) win = true //rader
-        if (board[3] == 1 && board[4] == 1 && board[5] == 1) win = true
-        if (board[6] == 1 && board[7] == 1 && board[8] == 1) win = true
+        // Column
+        for (i in 0..2) {
+            if (board[i] != 0 && board[i] == board[i + 3] && board[i] == board[i + 6]) {
+                return board[i] // Return the winner (1 or 2)
+            }
+        }
 
-        if (board[0] == 1 && board[3] == 1 && board[6] == 1) win = true // KOlumn
-        if (board[1] == 1 && board[4] == 1 && board[7] == 1) win = true
-        if (board[2] == 1 && board[5] == 1 && board[8] == 1) win = true
+        //Diagonal
+        if (board[0] != 0 && board[0] == board[4] && board[0] == board[8]) {
+            return board[0]
+        }
+        if (board[2] != 0 && board[2] == board[4] && board[2] == board[6]) {
+            return board[2]
+        }
 
-        if (board[0] == 1 && board[4] == 1 && board[8] == 1) win = true //// Diagonal
-        if (board[2] == 1 && board[4] == 1 && board[6] == 1) win = true
 
-        return win
+        return 0   // If no winner, return 0 (no winner)
     }
+
+
+    fun checkGameState(gameId: String?, cell: Int) {
+        if (gameId != null) {
+            val game: Game? = gameMap.value[gameId]
+            if (game != null) {
+                // Check if it's the player's turn
+                val myTurn = game.gameState == "player1_turn" && game.player1Id == localPlayerId.value ||
+                        game.gameState == "player2_turn" && game.player2Id == localPlayerId.value
+                if (!myTurn) return // It's not the player's turn, so return
+
+                val list: MutableList<Int> = game.gameBoard.toMutableList()
+
+                // Place the current player's move on the board
+                if (game.gameState == "player1_turn") {
+                    list[cell] = 1
+                } else if (game.gameState == "player2_turn") {
+                    list[cell] = 2
+                }
+
+                val winner = checkWinner(list)
+
+                var turn = ""
+                when (winner) {
+                    1 -> turn = "player1_won"
+                    2 -> turn = "player2_won"
+                    0 -> {
+                        // No winner yet, change turn
+                        turn = if (game.gameState == "player1_turn") "player2_turn" else "player1_turn"
+                    }
+                }
+
+                // Update the game state and game board in the database
+                db.collection("games").document(gameId)
+                    .update(
+                        "gameBoard", list,
+                        "gameState", turn
+                    )
+            }
+        }
+    }
+
 }
 //
