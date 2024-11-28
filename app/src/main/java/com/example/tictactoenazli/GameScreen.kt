@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,13 +44,16 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
     if (gameId != null && games.containsKey(gameId)) {
+        val game = games[gameId]
+        val gameState = game?.gameState
+
         Scaffold(
             topBar = { TopAppBar(title =  { Text("TicTacToe - $gameId") }) }
         ) { innerPadding ->
             Column(modifier = Modifier
                 .padding(innerPadding)) {
 
-                Text("Game state: ${games[gameId]!!.gameState}")
+                Text("Game state: $gameState")
 
                 Column( //Board
                     modifier = Modifier
@@ -59,8 +63,8 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ){
-                    Text("Game status")
                     Spacer(modifier = Modifier.padding(10.dp))
+
                     Row (
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier
@@ -87,40 +91,51 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                         }
 
                     }
+
+                    //Game board
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
                         modifier = Modifier.padding(16.dp)
                     ) {
                         items(9){ index ->
+                            val cellState = games[gameId]?.gameBoard?.get(index)?:0 //hämtar nuvarande index för o visa rätt tecken
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.padding(5.dp).size(100.dp).background(color = Color.White, RoundedCornerShape(13.dp))
                                     .border(1.dp, color = Color.White, RoundedCornerShape(13.dp))
-                                    .clickable {  }
+                                    .clickable { //Om rutan är tom och det är spelarens tur.
+                                        val game = games[gameId] ?: return@clickable
+                                        val playerId = model.localPlayerId.value
+
+                                        if(game.gameBoard[index] == 0 &&
+                                            ((game.gameState == "player1_turn" && playerId == game.player1Id) ||
+                                                    (game.gameState == "player2_turn" && playerId == game.player2Id))){
+                                            model.checkGameState(gameId, index) //updater board med spelarens drag.
+                                        }
+                                    }
                             ){
                                 Text(
-                                    text = "Text",
-                                    style = androidx.compose.ui.text.TextStyle(
-                                        fontSize = 83.sp,
-                                        color = BabyPink
-                                    ),
+                                    text = when(cellState){
+                                        1 -> "X" 2 ->"O" else ->"" //kolla om player1 elr player2 annars tom.
+                                    },
+                                    style = androidx.compose.ui.text.TextStyle(fontSize = 83.sp, color = BabyPink),
                                     modifier = Modifier.fillMaxSize(),
                                     textAlign = TextAlign.Center
                                 )
-
                             }
                         }
                     }
 
+                    if(gameState == "player1_won" || gameState == "player2_won" || gameState == "draw"){
+                        LaunchedEffect(gameState){ //Navigera till resultat sidan när spelet är klart.
+                            navController.navigate("resultScreen/$gameId")
+                        }
+                    }
                 }
-
             }
         }
     } else {
-        Log.e(
-            "Error",
-            "Error Game not found: $gameId"
-        )
+        Log.e("Error", "Error Game not found: $gameId")
         navController.navigate("lobby")
     }
 }

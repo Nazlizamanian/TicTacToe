@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @Composable
 fun ResultScreen(navController: NavController, model: GameModel, gameId: String?){
-
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
@@ -58,7 +57,9 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
         ) {
             // Display winner text (you can replace the "fixa" with the actual winner)
             Text(
-                text = "Winner: $player1Name", // You can dynamically set the winner
+                text = "Winner: ${ if (game.gameState == "player1_won") player1Name 
+                else if (game.gameState == "player2_won") player2Name 
+                else "No winner, its a draw!" }",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -69,17 +70,15 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                // Trophy icon for winner
+                // Trophy icon for winner ish
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = "Winner Trophy",
                     modifier = Modifier.size(48.dp),
                     tint = Color.Yellow
                 )
-
                 Spacer(modifier = Modifier.width(32.dp))
 
-                // Loser icon (assuming you want to show the second player as the loser)
                 Icon(
                     imageVector = Icons.Default.Face,
                     contentDescription = "Loser Icon",
@@ -90,13 +89,12 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Show the player names
             Text("Player 1: $player1Name")
             Text("Player 2: $player2Name")
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Button to navigate back to lobby
+            // klickbar box aka button to navigate back to lobby.
             Box(
                 modifier = Modifier
                     .clickable {
