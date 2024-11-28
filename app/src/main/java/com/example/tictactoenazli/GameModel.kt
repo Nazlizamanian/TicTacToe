@@ -21,8 +21,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 
-
+//vår viewmodel som asvarig för vår data
 class GameModel: ViewModel() {
+
     val db = Firebase.firestore
     var localPlayerId = mutableStateOf<String?>(null)
     val playerMap = MutableStateFlow<Map<String, Player>>(emptyMap())
@@ -126,6 +127,5 @@ class GameModel: ViewModel() {
             }
         }
     }
-
 }
 //
