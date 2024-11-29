@@ -1,6 +1,7 @@
 package com.example.tictactoenazli
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.example.tictactoenazli.ui.theme.BabyPink
 import kotlinx.coroutines.flow.asStateFlow
 
 
@@ -122,7 +124,7 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
     Scaffold(
         topBar = { TopAppBar(title =  { Text("TicTacToe - $playerName") }) }
     ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
+        LazyColumn(modifier = Modifier.padding(innerPadding). background(BabyPink)) {
             items(players.entries.toList()) { (documentId, player) ->
                 if (documentId != model.localPlayerId.value) { // Don't show yourself'
                     ListItem(
