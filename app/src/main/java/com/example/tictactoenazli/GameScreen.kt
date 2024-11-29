@@ -24,6 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.tictactoenazli.ui.theme.BabyPink
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
+import java.time.format.TextStyle
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,22 +52,81 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
         val game = games[gameId]
         val gameState = game?.gameState
 
+        val localPlayerId = model.localPlayerId.value
+
+        val isLocalPlayerTurn = when (gameState) {
+            "player1_turn" -> localPlayerId == game?.player1Id
+            "player2_turn" -> localPlayerId == game?.player2Id
+            else -> false
+        }
+
+        var isGameOver by remember { mutableStateOf(false) }
+
+        LaunchedEffect(gameState) {
+            if (gameState == "player1_won" || gameState == "player2_won" || gameState == "draw") {
+                isGameOver = true
+                delay(2000) // Delay for 2 seconds before navigating
+                navController.navigate("resultScreen/$gameId")
+            }
+        }
+
+
         Scaffold(
-            topBar = { TopAppBar(title =  { Text("TicTacToe - $gameId") }) }
-        ) { innerPadding ->
-            Column(modifier = Modifier
-                .padding(innerPadding)) {
+            topBar = { TopAppBar(title =  { Text("TicTacToe - ${players.values}") }) }
+        ) { padding ->
+            Column( modifier = Modifier
+                .fillMaxSize()
+                .background(color = BabyPink)
+                .padding(15.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
 
-                Text("Game state: $gameState")
+                //Text("Game state: $gameState")
 
-                Column( //Board
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = BabyPink)
-                        .padding(15.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ){
+
+                if(gameState == "player1_turn" || gameState == "player2_turn"){
+                    if (isLocalPlayerTurn) { //Visa vems spelares tur det är
+                        Text(
+                            text = "Your Turn",
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Green
+                            ),
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    } else {
+                        val opponentName = if (gameState == "player1_turn") {
+                            players[game?.player2Id]?.name
+                        } else {
+                            players[game?.player1Id]?.name
+                        }
+                        Text(
+                            text = "${opponentName ?: "Other Player"}'s Turn",
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            ),
+                            modifier = Modifier.padding(8.dp)
+                        )
+
+                    }
+
+                }
+                if (isGameOver) {
+                    Text(
+                        text = "Game Over",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        ),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
+
                     Spacer(modifier = Modifier.padding(10.dp))
 
                     Row (
@@ -126,12 +190,8 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                         }
                     }
 
-                    if(gameState == "player1_won" || gameState == "player2_won" || gameState == "draw"){
-                        LaunchedEffect(gameState){ //Navigera till resultat sidan när spelet är klart.
-                            navController.navigate("resultScreen/$gameId")
-                        }
-                    }
-                }
+
+
             }
         }
     } else {
