@@ -28,9 +28,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.tictactoenazli.ui.theme.BabyPink
@@ -57,7 +60,7 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
         ) {
             // Display winner text (you can replace the "fixa" with the actual winner)
             Text(
-                text = "Winner: ${ if (game.gameState == "player1_won") player1Name 
+                text = "Winner is ${ if (game.gameState == "player1_won") player1Name 
                 else if (game.gameState == "player2_won") player2Name 
                 else "No winner, its a draw!" }",
                 style = MaterialTheme.typography.headlineLarge,
@@ -77,7 +80,7 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     modifier = Modifier.size(48.dp),
                     tint = Color.Yellow
                 )
-                Spacer(modifier = Modifier.width(32.dp))
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Icon(
                     imageVector = Icons.Default.Face,
@@ -85,12 +88,17 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     modifier = Modifier.size(48.dp),
                     tint = Color.Gray
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(modifier = Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center){
+                    Text("Player 1: $player1Name")
+                    Text("Player 2: $player2Name")
+
+                }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Player 1: $player1Name")
-            Text("Player 2: $player2Name")
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -100,16 +108,19 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     .clickable {
                         navController.navigate(Screen.LobbyScreen.route)
                     }
-                    .padding(16.dp)
-                    .border(2.dp, Color.Black, RoundedCornerShape(13.dp))
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .padding(10.dp)
+                    .shadow(10.dp, RoundedCornerShape(13.dp))
+                    .background(Color.White, RoundedCornerShape(13.dp))
+                    .border(2.dp, Color.White, RoundedCornerShape(13.dp))
+                    .fillMaxWidth(),
+
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Go to Lobby",
                     style = MaterialTheme.typography.displayMedium,
                 )
+
             }
         }
     } else {

@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
 
+
     implementation("com.google.firebase:firebase-firestore:25.1.1")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 

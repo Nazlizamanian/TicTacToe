@@ -2,16 +2,23 @@ package com.example.tictactoenazli
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,7 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -127,16 +138,57 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
         LazyColumn(modifier = Modifier.padding(innerPadding). background(BabyPink)) {
             items(players.entries.toList()) { (documentId, player) ->
                 if (documentId != model.localPlayerId.value) { // Don't show yourself'
-                    ListItem(
-                        headlineText = {
-                            Text("Player Name: ${player.name}") },
-                        supportingText = {
-                            Text("Status: ...") },
-                        trailingContent = {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 16.dp)
+                            .shadow(10.dp, RoundedCornerShape(13.dp))
+                            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+                            .padding(16.dp) // Inner padding for content
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Player Icon",
+                                modifier = Modifier.size(40.dp),
+                                tint = BabyPink
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                // Headline Text
+                                Text(
+                                    text = "Player Name: ${player.name}",
+                                    style = androidx.compose.ui.text.TextStyle(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                // Supporting Text
+                                Text(
+                                    text = "Status: ...",
+                                    style = androidx.compose.ui.text.TextStyle(
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+                                )
+                            }
+
+                            // Trailing Content
                             var hasGame = false
                             games.forEach { (gameId, game) ->
                                 if (game.player1Id == model.localPlayerId.value && game.gameState == "invite") {
-                                    Text("Waiting for accept...")
+                                    Text(
+                                        text = "Waiting for accept...",
+                                        style = androidx.compose.ui.text.TextStyle(
+                                            fontSize = 14.sp,
+                                            color = Color.Gray
+                                        )
+                                    )
                                     hasGame = true
                                 } else if (game.player2Id == model.localPlayerId.value && game.gameState == "invite") {
                                     Button(onClick = {
@@ -154,19 +206,42 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                     hasGame = true
                                 }
                             }
+
                             if (!hasGame) {
-                                Button(onClick = {
-                                    model.db.collection("games")
-                                        .add(Game(gameState = "invite", player1Id = model.localPlayerId.value!!, player2Id = documentId))
-                                        .addOnSuccessListener { documentRef ->
-                                            // TODO: Navigate?
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            color = BabyPink,
+                                            shape = RoundedCornerShape(13.dp)
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 12.dp)
+                                        .clickable {
+                                            model.db.collection("games")
+                                                .add(
+                                                    Game(
+                                                        gameState = "invite",
+                                                        player1Id = model.localPlayerId.value!!,
+                                                        player2Id = documentId
+                                                    )
+                                                )
+                                                .addOnSuccessListener { documentRef ->
+                                                    // TODO: Navigate?
+                                                }
                                         }
-                                }) {
-                                    Text("Challenge")
+                                ) {
+                                    Text(
+                                        text = "Challenge",
+                                        color = Color.White,
+                                        style = androidx.compose.ui.text.TextStyle(
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
                                 }
                             }
                         }
-                    )
+                    }
+
                 }
             }
         }

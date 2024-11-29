@@ -65,137 +65,151 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
         LaunchedEffect(gameState) {
             if (gameState == "player1_won" || gameState == "player2_won" || gameState == "draw") {
                 isGameOver = true
-                delay(2000) // Delay for 2 seconds before navigating
-                navController.navigate("resultScreen/$gameId")
+                delay(1500) // Delay for 2 seconds before navigating
+                if (gameId != null && games.containsKey(gameId)) {
+                    navController.navigate("resultScreen/$gameId")
+                }
             }
         }
 
-
-        Scaffold(
-            topBar = { TopAppBar(title =  { Text("TicTacToe - ${players.values}") }) }
-        ) { padding ->
-            Column( modifier = Modifier
+        Column(
+            modifier = Modifier
                 .fillMaxSize()
                 .background(color = BabyPink)
                 .padding(15.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-                //Text("Game state: $gameState")
-
-
-                if(gameState == "player1_turn" || gameState == "player2_turn"){
-                    if (isLocalPlayerTurn) { //Visa vems spelares tur det är
-                        Text(
-                            text = "Your Turn",
-                            style = androidx.compose.ui.text.TextStyle(
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Green
-                            ),
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    } else {
-                        val opponentName = if (gameState == "player1_turn") {
-                            players[game?.player2Id]?.name
-                        } else {
-                            players[game?.player1Id]?.name
-                        }
-                        Text(
-                            text = "${opponentName ?: "Other Player"}'s Turn",
-                            style = androidx.compose.ui.text.TextStyle(
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray
-                            ),
-                            modifier = Modifier.padding(8.dp)
-                        )
-
-                    }
-
-                }
-                if (isGameOver) {
+            if (gameState == "player1_turn" || gameState == "player2_turn") {
+                if (isLocalPlayerTurn) {
                     Text(
-                        text = "Game Over",
+                        text = "Your Turn",
                         style = androidx.compose.ui.text.TextStyle(
-                            fontSize = 24.sp,
+                            fontSize = 25.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = Color.Green
                         ),
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(8.dp)
+                    )
+                } else {
+                    val opponentName = if (gameState == "player1_turn") {
+                        players[game?.player2Id]?.name
+                    } else {
+                        players[game?.player1Id]?.name
+                    }
+                    Text(
+                        text = "${opponentName ?: "Other Player"}'s Turn",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
+            if (isGameOver) {
+                Text(
+                    text = "Game Over",
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    ),
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(10.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(100.dp)
+                        .background(Color.White, RoundedCornerShape(13.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Player 1: ${players[games[gameId]!!.player1Id]!!.name}",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
                     )
                 }
 
+                Spacer(modifier = Modifier.width(16.dp))
 
-                    Spacer(modifier = Modifier.padding(10.dp))
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .size(100.dp)
+                        .background(Color.White, RoundedCornerShape(13.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Player 2: ${players[games[gameId]!!.player2Id]!!.name}",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                }
+            }
 
-                    Row (
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                items(9) { index ->
+                    val cellState = games[gameId]?.gameBoard?.get(index) ?: 0
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                    ){
-                        Box( modifier = Modifier
                             .padding(5.dp)
                             .size(100.dp)
-                            .background(Color.White, RoundedCornerShape(13.dp)),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(text= "Player 1: ${players[games[gameId]!!.player1Id]!!.name}",
-                                style = androidx.compose.ui.text.TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign= TextAlign.Center))
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
+                            .background(color = Color.White, RoundedCornerShape(13.dp))
+                            .border(1.dp, color = Color.White, RoundedCornerShape(13.dp))
+                            .clickable {
+                                val game = games[gameId] ?: return@clickable
+                                val playerId = model.localPlayerId.value
 
-                        Box( modifier = Modifier.padding(5.dp).size(100.dp)
-                            .background(Color.White, RoundedCornerShape(13.dp)),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(text= "Player 2: ${players[games[gameId]!!.player2Id]!!.name}",
-                                style = androidx.compose.ui.text.TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign= TextAlign.Center))
-                        }
-
-                    }
-
-                    //Game board
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        items(9){ index ->
-                            val cellState = games[gameId]?.gameBoard?.get(index)?:0 //hämtar nuvarande index för o visa rätt tecken
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.padding(5.dp).size(100.dp).background(color = Color.White, RoundedCornerShape(13.dp))
-                                    .border(1.dp, color = Color.White, RoundedCornerShape(13.dp))
-                                    .clickable { //Om rutan är tom och det är spelarens tur.
-                                        val game = games[gameId] ?: return@clickable
-                                        val playerId = model.localPlayerId.value
-
-                                        if(game.gameBoard[index] == 0 &&
-                                            ((game.gameState == "player1_turn" && playerId == game.player1Id) ||
-                                                    (game.gameState == "player2_turn" && playerId == game.player2Id))){
-                                            model.checkGameState(gameId, index) //updater board med spelarens drag.
-                                        }
-                                    }
-                            ){
-                                Text(
-                                    text = when(cellState){
-                                        1 -> "X" 2 ->"O" else ->"" //kolla om player1 elr player2 annars tom.
-                                    },
-                                    style = androidx.compose.ui.text.TextStyle(fontSize = 83.sp, color = BabyPink),
-                                    modifier = Modifier.fillMaxSize(),
-                                    textAlign = TextAlign.Center
-                                )
+                                if (game.gameBoard[index] == 0 &&
+                                    ((game.gameState == "player1_turn" && playerId == game.player1Id) ||
+                                            (game.gameState == "player2_turn" && playerId == game.player2Id))
+                                ) {
+                                    model.checkGameState(gameId, index)
+                                }
                             }
-                        }
+                    ) {
+                        Text(
+                            text = when (cellState) {
+                                1 -> "X"
+                                2 -> "O"
+                                else -> ""
+                            },
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontSize = 83.sp,
+                                color = BabyPink
+                            ),
+                            modifier = Modifier.fillMaxSize(),
+                            textAlign = TextAlign.Center
+                        )
                     }
-
-
-
+                }
             }
         }
-    } else {
-        Log.e("Error", "Error Game not found: $gameId")
-        navController.navigate("lobby")
+
     }
+
 }

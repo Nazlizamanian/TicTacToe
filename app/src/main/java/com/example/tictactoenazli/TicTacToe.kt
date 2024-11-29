@@ -58,10 +58,12 @@ fun TicTacToe() {
             val gameId = backStackEntry.arguments?.getString("gameId")
             GameScreen(navController, model, gameId)
         }
-        /*
-        composable(Screen.ResultScreen.route) {
-            ResultScreen(navController, model)
+
+        composable("resultScreen/{gameId}") { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString("gameId")
+            ResultScreen(navController = navController, model = model, gameId = gameId)
         }
+        /*
         composable(Screen.MainScreen.route) {
             MainScreen(navController, model)
         }*/
