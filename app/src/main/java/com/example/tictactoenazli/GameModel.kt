@@ -88,6 +88,7 @@ class GameModel: ViewModel() {
     }
 
 
+
     fun checkGameState(gameId: String?, cell: Int) {
         if (gameId != null) {
             val game: Game? = gameMap.value[gameId]

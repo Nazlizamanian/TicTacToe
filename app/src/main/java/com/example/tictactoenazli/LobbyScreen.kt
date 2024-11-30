@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,7 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -43,7 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.tictactoenazli.ui.theme.BabyPink
 import kotlinx.coroutines.flow.asStateFlow
-
+import java.time.format.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,104 +55,56 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
+    var challengedPlayerId by remember { mutableStateOf<String?>(null) }
+    val localPlayerId = model.localPlayerId.value!!
 
-    var showPopup by remember { mutableStateOf(false) }
-    var gameToAccept by remember { mutableStateOf<Pair<String, Game>?>(null) }
-
+    // Detect if the local player is part of a game with "player1_turn" state
     LaunchedEffect(games) {
         games.forEach { (gameId, game) ->
-            // TODO: Popup with accept invite?
-
-            if ((game.player1Id == model.localPlayerId.value || game.player2Id == model.localPlayerId.value) && game.gameState == "player1_turn") {
+            if ((game.player1Id == localPlayerId || game.player2Id == localPlayerId) &&
+                game.gameState == "player1_turn"
+            ) {
                 navController.navigate("game/${gameId}")
-                //gameToAccept = gameId to game
-               // showPopup = true
             }
         }
     }
-    if(showPopup){
-        gameToAccept?.let { (gameId, game)->
-            Dialog(onDismissRequest = {showPopup = false}) {
-                Surface (
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.padding(16.dp)
-                ){
-                    Column (modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Game Invite",
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        Text(
-                            text = "${players[game.player1Id]?.name ?: "Unknown"} has invited you to a game.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Button(
-                                onClick = {
-                                    showPopup = false
-                                    model.db.collection("games").document(gameId)
-                                        .update("gameState", "player1_turn")
-                                        .addOnSuccessListener {
-                                            navController.navigate("game/${gameId}")
-                                        }
-                                        .addOnFailureListener {
-                                            Log.e("Error", "Error accepting game invite: $gameId")
-                                        }
-                                }
-                            ) {
-                                Text("Accept")
-                            }
-                            Button(
-                                onClick = {
-                                    showPopup = false
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Text("Decline")
-                            }
-
-                        }
-
-                    }
-
-                }
-            }
-
-        }
-
-    }
-
-    var playerName = "Unknown?"
-    players[model.localPlayerId.value]?.let { playerName = it.name }
 
     Scaffold(
-        topBar = { TopAppBar(title =  { Text("TicTacToe - $playerName") }) }
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text ="TicTacToe - ${players[localPlayerId]?.name ?: "Unknown"}",
+                        style = androidx.compose.ui.text.TextStyle(fontWeight = FontWeight.Thin,
+                            textAlign = TextAlign.Center,
+                            fontSize = 40.sp,
+                            fontFamily = FontFamily.Cursive
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            )
+        },
+        modifier = Modifier.fillMaxSize().background(BabyPink)
     ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding). background(BabyPink)) {
-            items(players.entries.toList()) { (documentId, player) ->
-                if (documentId != model.localPlayerId.value) { // Don't show yourself'
-
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(BabyPink)
+        ) {
+            items(players.entries.toList()) { (playerId, player) ->
+                if (playerId != localPlayerId) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp, horizontal = 16.dp)
                             .shadow(10.dp, RoundedCornerShape(13.dp))
                             .background(color = Color.White, shape = RoundedCornerShape(8.dp))
-                            .padding(16.dp) // Inner padding for content
+                            .padding(16.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .padding(10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -156,11 +112,11 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                             Icon(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = "Player Icon",
-                                modifier = Modifier.size(40.dp),
+                                modifier = Modifier.size(60.dp),
                                 tint = BabyPink
                             )
+                            Spacer(modifier = Modifier.padding(4.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                // Headline Text
                                 Text(
                                     text = "Player Name: ${player.name}",
                                     style = androidx.compose.ui.text.TextStyle(
@@ -168,7 +124,6 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
-                                // Supporting Text
                                 Text(
                                     text = "Status: ...",
                                     style = androidx.compose.ui.text.TextStyle(
@@ -177,63 +132,64 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                     )
                                 )
                             }
+                           // Spacer(modifier = Modifier.padding(4.dp))
 
-                            // Trailing Content
-                            var hasGame = false
-                            games.forEach { (gameId, game) ->
-                                if (game.player1Id == model.localPlayerId.value && game.gameState == "invite") {
-                                    Text(
-                                        text = "Waiting for accept...",
-                                        style = androidx.compose.ui.text.TextStyle(
-                                            fontSize = 14.sp,
-                                            color = Color.Gray
-                                        )
+                            if (challengedPlayerId == playerId) {
+                                Text(
+                                    text = "Waiting for accept...",
+                                    style = androidx.compose.ui.text.TextStyle(
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
                                     )
-                                    hasGame = true
-                                } else if (game.player2Id == model.localPlayerId.value && game.gameState == "invite") {
-                                    Button(onClick = {
+                                )
+                            } else if (games.any { it.value.player1Id == playerId && it.value.player2Id == localPlayerId && it.value.gameState == "invite" }) {
+                                Button(onClick = {
+                                    val game = games.entries.find {
+                                        it.value.player1Id == playerId &&
+                                                it.value.player2Id == localPlayerId &&
+                                                it.value.gameState == "invite"
+                                    }
+                                    game?.let { (gameId, _) ->
                                         model.db.collection("games").document(gameId)
                                             .update("gameState", "player1_turn")
                                             .addOnSuccessListener {
                                                 navController.navigate("game/${gameId}")
                                             }
                                             .addOnFailureListener {
-                                                Log.e("Error", "Error updating game: $gameId")
+                                                Log.e("Error", "Error accepting game invite: $gameId")
                                             }
-                                    }) {
-                                        Text("Accept invite")
                                     }
-                                    hasGame = true
+                                }) {
+                                    Text("Accept invite")
                                 }
-                            }
-
-                            if (!hasGame) {
-                                Box(
-                                    modifier = Modifier
-                                        .background(
-                                            color = BabyPink,
-                                            shape = RoundedCornerShape(13.dp)
-                                        )
-                                        .padding(horizontal = 12.dp, vertical = 12.dp)
-                                        .clickable {
-                                            model.db.collection("games")
-                                                .add(
-                                                    Game(
-                                                        gameState = "invite",
-                                                        player1Id = model.localPlayerId.value!!,
-                                                        player2Id = documentId
-                                                    )
+                            } else {
+                                Button(
+                                    onClick = {
+                                        challengedPlayerId = playerId
+                                        model.db.collection("games")
+                                            .add(
+                                                Game(
+                                                    gameState = "invite",
+                                                    player1Id = localPlayerId,
+                                                    player2Id = playerId
                                                 )
-                                                .addOnSuccessListener { documentRef ->
-                                                    // TODO: Navigate?
-                                                }
-                                        }
+                                            )
+                                            .addOnSuccessListener {
+                                                Log.d("Game", "Challenge sent to $playerId")
+                                            }
+                                            .addOnFailureListener {
+                                                Log.e("Error", "Error sending challenge to $playerId")
+                                            }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = BabyPink
+                                    )
                                 ) {
                                     Text(
                                         text = "Challenge",
                                         color = Color.White,
                                         style = androidx.compose.ui.text.TextStyle(
-                                            fontSize = 18.sp,
+                                            fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                     )
@@ -241,7 +197,6 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                             }
                         }
                     }
-
                 }
             }
         }

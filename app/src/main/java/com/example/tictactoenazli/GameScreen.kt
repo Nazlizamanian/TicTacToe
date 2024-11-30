@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +50,8 @@ import java.time.format.TextStyle
 fun GameScreen(navController: NavController, model: GameModel, gameId: String?) {
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
+
+    var showExitDialog by remember { mutableStateOf(false) }
 
     if (gameId != null && games.containsKey(gameId)) {
         val game = games[gameId]
@@ -86,7 +91,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     Text(
                         text = "Your Turn",
                         style = androidx.compose.ui.text.TextStyle(
-                            fontSize = 25.sp,
+                            fontSize = 50.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Green
                         ),
@@ -101,8 +106,8 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     Text(
                         text = "${opponentName ?: "Other Player"}'s Turn",
                         style = androidx.compose.ui.text.TextStyle(
-                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
+                            fontSize= 50.sp,
                             color = Color.Gray
                         ),
                         modifier = Modifier.padding(8.dp)
@@ -114,7 +119,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                 Text(
                     text = "Game Over",
                     style = androidx.compose.ui.text.TextStyle(
-                        fontSize = 24.sp,
+                        fontSize = 50.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     ),
@@ -134,6 +139,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     modifier = Modifier
                         .padding(5.dp)
                         .size(100.dp)
+                        .shadow(5.dp, RoundedCornerShape(13.dp))
                         .background(Color.White, RoundedCornerShape(13.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -153,6 +159,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     modifier = Modifier
                         .padding(5.dp)
                         .size(100.dp)
+                        .shadow(5.dp, RoundedCornerShape(13.dp))
                         .background(Color.White, RoundedCornerShape(13.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -178,6 +185,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                         modifier = Modifier
                             .padding(5.dp)
                             .size(100.dp)
+                            .shadow(5.dp, RoundedCornerShape(13.dp))
                             .background(color = Color.White, RoundedCornerShape(13.dp))
                             .border(1.dp, color = Color.White, RoundedCornerShape(13.dp))
                             .clickable {
@@ -208,7 +216,15 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     }
                 }
             }
-        }
+
+
+
+
+
+
+
+
+        }//column end
 
     }
 

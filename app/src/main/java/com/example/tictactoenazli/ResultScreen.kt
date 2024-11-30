@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ import com.example.tictactoenazli.ui.theme.BabyPink
 import kotlinx.coroutines.flow.asStateFlow
 
 @Composable
-fun ResultScreen(navController: NavController, model: GameModel, gameId: String?){
+fun ResultScreen(navController: NavController, model: GameModel, gameId: String?) {
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
@@ -58,69 +59,76 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Display winner text (you can replace the "fixa" with the actual winner)
+            // Display winner text
             Text(
-                text = "Winner is ${ if (game.gameState == "player1_won") player1Name 
-                else if (game.gameState == "player2_won") player2Name 
-                else "No winner, its a draw!" }",
+                text = "Winner is ${if (game.gameState == "player1_won") player1Name
+                else if (game.gameState == "player2_won") player2Name
+                else "No winner, it's a draw!" }",
                 style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
+            // Text-based Emojis and player names
             Row(
                 modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Trophy icon for winner ish
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Winner Trophy",
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Yellow
-                )
-                Spacer(modifier = Modifier.width(16.dp))
+                // Player 1 Emoji
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (game.gameState == "player1_won") "👑" else "😞", // Crown or Sad Face
+                        style = TextStyle(fontSize = 60.sp),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        text = "Player 1: $player1Name",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
+                }
 
-                Icon(
-                    imageVector = Icons.Default.Face,
-                    contentDescription = "Loser Icon",
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Column(modifier = Modifier
-                    .padding(top = 16.dp)
-                    .fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center){
-                    Text("Player 1: $player1Name")
-                    Text("Player 2: $player2Name")
-
+                // Player 2 Emoji
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = if (game.gameState == "player2_won") "👑" else "😞", // Crown or Sad Face
+                        style = TextStyle(fontSize = 60.sp),
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        text = "Player 2: $player2Name",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // klickbar box aka button to navigate back to lobby.
+            // Go to Lobby Button
             Box(
                 modifier = Modifier
-                    .clickable {
-                        navController.navigate(Screen.LobbyScreen.route)
-                    }
-                    .padding(10.dp)
-                    .shadow(10.dp, RoundedCornerShape(13.dp))
-                    .background(Color.White, RoundedCornerShape(13.dp))
-                    .border(2.dp, Color.White, RoundedCornerShape(13.dp))
+                    .clickable { navController.navigate(Screen.LobbyScreen.route) }
+                    .padding(12.dp)
+                    .shadow(10.dp, RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .border(2.dp, Color.White, RoundedCornerShape(16.dp))
                     .fillMaxWidth(),
-
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Go to Lobby",
-                    style = MaterialTheme.typography.displayMedium,
+                    style = MaterialTheme.typography.displaySmall,
+                    modifier = Modifier.padding(8.dp)
                 )
-
             }
         }
     } else {
@@ -128,4 +136,3 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
         navController.navigate("lobby")
     }
 }
-
