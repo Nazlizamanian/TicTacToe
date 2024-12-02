@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,10 +37,10 @@ import androidx.navigation.NavController
 import com.example.tictactoenazli.ui.theme.BabyPink
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
-import java.time.format.TextStyle
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
 @Composable
 fun GameScreen(navController: NavController, model: GameModel, gameId: String?) {
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()

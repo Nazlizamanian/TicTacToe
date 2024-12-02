@@ -63,10 +63,10 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
             Text(
                 text = "Winner is ${if (game.gameState == "player1_won") player1Name
                 else if (game.gameState == "player2_won") player2Name
-                else "No winner, it's a draw!" }",
+                else "no winner, it's a draw!" }",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
             )
 
             // Text-based Emojis and player names
@@ -82,9 +82,13 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (game.gameState == "player1_won") "👑" else "😞", // Crown or Sad Face
-                        style = TextStyle(fontSize = 60.sp),
-                        modifier = Modifier.size(64.dp)
+                        text = when {
+                                game.gameState == "player1_won" -> "👑"
+                                game.gameState == "draw" -> "😞"
+                                else -> "😞" //player 1 förlorat
+                        },
+                        style = TextStyle(fontSize = 60.sp), //styling för emoji
+                        modifier = Modifier.size(60.dp)
                     )
                     Text(
                         text = "Player 1: $player1Name",
@@ -99,9 +103,13 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = if (game.gameState == "player2_won") "👑" else "😞", // Crown or Sad Face
+                        text = when {
+                            game.gameState == "player2_won" -> "👑"
+                            game.gameState == "draw" -> "😞"
+                            else -> "😞" //player 2 förlorat
+                        },
                         style = TextStyle(fontSize = 60.sp),
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(60.dp)
                     )
                     Text(
                         text = "Player 2: $player2Name",

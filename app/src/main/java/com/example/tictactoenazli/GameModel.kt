@@ -83,6 +83,11 @@ class GameModel: ViewModel() {
             return board[2]
         }
 
+        // If all cells are filled and there is no winner, it's a draw
+        if (board.none { it == 0 }) {
+            return -1 // Return -1 to indicate a draw
+        }
+
 
         return 0   // If no winner, return 0 (no winner)
     }
@@ -113,6 +118,7 @@ class GameModel: ViewModel() {
                 when (winner) {
                     1 -> turn = "player1_won"
                     2 -> turn = "player2_won"
+                    -1 -> turn = "draw"
                     0 -> {
                         // No winner yet, change turn
                         turn = if (game.gameState == "player1_turn") "player2_turn" else "player1_turn"
@@ -129,4 +135,3 @@ class GameModel: ViewModel() {
         }
     }
 }
-//
