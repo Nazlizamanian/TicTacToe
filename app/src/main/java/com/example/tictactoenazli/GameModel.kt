@@ -59,11 +59,27 @@ class GameModel: ViewModel() {
             }
     }
 
+    fun updateScore(winnerId: String) {
+        // Get the winner player from the database and increment their score
+        db.collection("players").document(winnerId)
+            .get()
+            .addOnSuccessListener { document ->
+                val player = document.toObject(Player::class.java)
+                if (player != null) {
+                    val updatedPlayer = player.copy(score = player.score + 1)
+                    // Update the player's score in Firestore
+                    db.collection("players").document(winnerId).set(updatedPlayer)
+                }
+            }
+    }
 
-    fun checkWinner(board: List<Int>): Int {
+
+    fun checkWinner(gameId: String?, board: List<Int>): Int {
         //rader
         for (i in 0..2) {
             if (board[i * 3] != 0 && board[i * 3] == board[i * 3 + 1] && board[i * 3] == board[i * 3 + 2]) {
+                val winnerId = if (board[i * 3] == 1) gameMap.value[gameId]?.player1Id else gameMap.value[gameId]?.player2Id
+                winnerId?.let { updateScore(it) }
                 return board[i * 3]
             }
         }
@@ -88,7 +104,6 @@ class GameModel: ViewModel() {
             return -1 // Return -1 to indicate a draw
         }
 
-
         return 0   // If no winner, return 0 (no winner)
     }
 
@@ -112,13 +127,13 @@ class GameModel: ViewModel() {
                     list[cell] = 2
                 }
 
-                val winner = checkWinner(list)
+                val winner = checkWinner(gameId, list)
 
                 var turn = ""
                 when (winner) {
                     1 -> turn = "player1_won"
                     2 -> turn = "player2_won"
-                    -1 -> turn = "draw"
+                    -1 -> turn = "draw" //Om det är ingen vinnare.
                     0 -> {
                         // No winner yet, change turn
                         turn = if (game.gameState == "player1_turn") "player2_turn" else "player1_turn"

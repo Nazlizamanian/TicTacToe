@@ -13,15 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +42,9 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
     if (game != null) {
         val player1Name = players[game.player1Id]?.name ?: "Player 1"
         val player2Name = players[game.player2Id]?.name ?: "Player 2"
+
+        val player1Score = players[game.player1Id]?.score?: 0
+        val player2Score = players[game.player2Id]?.score?:0
 
         Column(
             modifier = Modifier
@@ -87,11 +82,10 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                                 game.gameState == "draw" -> "😞"
                                 else -> "😞" //player 1 förlorat
                         },
-                        style = TextStyle(fontSize = 60.sp), //styling för emoji
-                        modifier = Modifier.size(60.dp)
+                        style = TextStyle(fontSize = 64.sp), //styling för emoji
                     )
                     Text(
-                        text = "Player 1: $player1Name",
+                        text = "Player 1: $player1Name\n Score: $player1Score",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(top = 5.dp)
                     )
@@ -108,17 +102,16 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                             game.gameState == "draw" -> "😞"
                             else -> "😞" //player 2 förlorat
                         },
-                        style = TextStyle(fontSize = 60.sp),
-                        modifier = Modifier.size(60.dp)
+                        style = TextStyle(fontSize = 64.sp),
+
                     )
                     Text(
-                        text = "Player 2: $player2Name",
+                        text = "Player 2: $player2Name\n Score: $player2Score",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(top = 5.dp)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // Go to Lobby Button

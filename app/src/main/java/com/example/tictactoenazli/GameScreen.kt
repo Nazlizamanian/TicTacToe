@@ -138,7 +138,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Player 1: ${players[games[gameId]!!.player1Id]!!.name}",
+                        text = "Player 1: ${players[games[gameId]!!.player1Id]!!.name} ",
                         style = androidx.compose.ui.text.TextStyle(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
