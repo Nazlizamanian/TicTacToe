@@ -17,12 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,7 +47,6 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
-    var showExitDialog by remember { mutableStateOf(false) }
 
     if (gameId != null && games.containsKey(gameId)) {
         val game = games[gameId]
@@ -70,7 +65,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
         LaunchedEffect(gameState) {
             if (gameState == "player1_won" || gameState == "player2_won" || gameState == "draw") {
                 isGameOver = true
-                delay(1500) // Delay for 2 seconds before navigating
+                delay(1500) // Delay
                 if (gameId != null && games.containsKey(gameId)) {
                     navController.navigate("resultScreen/$gameId")
                 }
@@ -98,13 +93,13 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                         modifier = Modifier.padding(8.dp)
                     )
                 } else {
-                    val opponentName = if (gameState == "player1_turn") {
+                    val opponentName = if (localPlayerId == game?.player1Id) {
                         players[game?.player2Id]?.name
                     } else {
                         players[game?.player1Id]?.name
                     }
                     Text(
-                        text = "${opponentName ?: "Other Player"}'s Turn",
+                        text = "${opponentName ?: "Opponents"}'s Turn",
                         style = androidx.compose.ui.text.TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize= 50.sp,
@@ -216,13 +211,6 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                     }
                 }
             }
-
-
-
-
-
-
-
 
         }//column end
 

@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,9 +58,9 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
     var challengedPlayerId by remember { mutableStateOf<String?>(null) }
+    var declinedPlayerId by remember { mutableStateOf<String?>(null) }
     val localPlayerId = model.localPlayerId.value!!
 
-    // Detect if the local player is part of a game with "player1_turn" state
     LaunchedEffect(games) {
         games.forEach { (gameId, game) ->
             if ((game.player1Id == localPlayerId || game.player2Id == localPlayerId) &&
@@ -73,8 +75,10 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text ="TicTacToe - ${players[localPlayerId]?.name ?: "Unknown"}",
-                        style = androidx.compose.ui.text.TextStyle(fontWeight = FontWeight.Thin,
+                    Text(
+                        text = "TicTacToe - ${players[localPlayerId]?.name ?: "Unknown"}",
+                        style = androidx.compose.ui.text.TextStyle(
+                            fontWeight = FontWeight.Thin,
                             textAlign = TextAlign.Center,
                             fontSize = 40.sp,
                             fontFamily = FontFamily.Cursive
@@ -84,7 +88,9 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                 }
             )
         },
-        modifier = Modifier.fillMaxSize().background(BabyPink)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BabyPink)
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -124,75 +130,146 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
-                                Text(
-                                    text = "Status: ...",
-                                    style = androidx.compose.ui.text.TextStyle(
-                                        fontSize = 14.sp,
-                                        color = Color.Gray
-                                    )
-                                )
                             }
-                           // Spacer(modifier = Modifier.padding(4.dp))
 
-                            if (challengedPlayerId == playerId) {
-                                Text(
-                                    text = "Waiting for accept...",
-                                    style = androidx.compose.ui.text.TextStyle(
-                                        fontSize = 14.sp,
-                                        color = Color.Gray
-                                    )
-                                )
-                            } else if (games.any { it.value.player1Id == playerId && it.value.player2Id == localPlayerId && it.value.gameState == "invite" }) {
-                                Button(onClick = {
-                                    val game = games.entries.find {
-                                        it.value.player1Id == playerId &&
-                                                it.value.player2Id == localPlayerId &&
-                                                it.value.gameState == "invite"
-                                    }
-                                    game?.let { (gameId, _) ->
-                                        model.db.collection("games").document(gameId)
-                                            .update("gameState", "player1_turn")
-                                            .addOnSuccessListener {
-                                                navController.navigate("game/${gameId}")
-                                            }
-                                            .addOnFailureListener {
-                                                Log.e("Error", "Error accepting game invite: $gameId")
-                                            }
-                                    }
-                                }) {
-                                    Text("Accept invite")
-                                }
-                            } else {
-                                Button(
-                                    onClick = {
-                                        challengedPlayerId = playerId
-                                        model.db.collection("games")
-                                            .add(
-                                                Game(
-                                                    gameState = "invite",
-                                                    player1Id = localPlayerId,
-                                                    player2Id = playerId
-                                                )
+                            when {
+                                // Case where Player 1 has sent an invite and Player 2 has not yet accepted or declined
+                                games.any {
+                                    it.value.player1Id == playerId &&
+                                            it.value.player2Id == localPlayerId &&
+                                            it.value.gameState == "invite"
+                                } -> {
+                                    // Accept or Decline Challenge
+                                    Row {
+                                        Button(
+                                            onClick = {
+                                                val game = games.entries.find {
+                                                    it.value.player1Id == playerId &&
+                                                            it.value.player2Id == localPlayerId &&
+                                                            it.value.gameState == "invite"
+                                                }
+                                                game?.let { (gameId, _) ->
+                                                    model.db.collection("games").document(gameId)
+                                                        .update("gameState", "player1_turn")
+                                                        .addOnSuccessListener {
+                                                            navController.navigate("game/${gameId}")
+                                                        }
+                                                        .addOnFailureListener {
+                                                            Log.e("Error", "Error accepting game invite: $gameId")
+                                                        }
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color.Green
                                             )
-                                            .addOnSuccessListener {
-                                                Log.d("Game", "Challenge sent to $playerId")
-                                            }
-                                            .addOnFailureListener {
-                                                Log.e("Error", "Error sending challenge to $playerId")
-                                            }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = BabyPink
-                                    )
-                                ) {
+                                        ) {
+                                            Text("Accept")
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Button(
+                                            onClick = {
+                                                val game = games.entries.find {
+                                                    it.value.player1Id == playerId &&
+                                                            it.value.player2Id == localPlayerId &&
+                                                            it.value.gameState == "invite"
+                                                }
+                                                game?.let { (gameId, _) ->
+                                                    model.db.collection("games").document(gameId)
+                                                        .delete()
+                                                        .addOnSuccessListener {
+                                                            declinedPlayerId = playerId
+                                                            Log.d("Game", "Game invite declined")
+                                                        }
+                                                        .addOnFailureListener {
+                                                            Log.e("Error", "Error declining game invite")
+                                                        }
+                                                }
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Color.Red
+                                            )
+                                        ) {
+                                            Text("Decline")
+                                        }
+                                    }
+                                }
+                                // Case where Player 1 already sent an invite, and Player 2 has declined
+                                declinedPlayerId == playerId -> {
                                     Text(
-                                        text = "Challenge",
-                                        color = Color.White,
+                                        text = "Challenge declined",
                                         style = androidx.compose.ui.text.TextStyle(
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
+                                            fontSize = 14.sp,
+                                            color = Color.Red
                                         )
                                     )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = {
+                                            declinedPlayerId = null // Reset declined state
+                                            challengedPlayerId = playerId // Set player as challenged again
+                                            model.db.collection("games")
+                                                .add(
+                                                    Game(
+                                                        gameState = "invite",
+                                                        player1Id = localPlayerId,
+                                                        player2Id = playerId
+                                                    )
+                                                )
+                                                .addOnSuccessListener {
+                                                    Log.d("Game", "Challenge sent to $playerId")
+                                                }
+                                                .addOnFailureListener {
+                                                    Log.e("Error", "Error sending challenge to $playerId")
+                                                }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = BabyPink
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Challenge again",
+                                            color = Color.White,
+                                            style = androidx.compose.ui.text.TextStyle(
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                }
+                                // Case where Player 1 has not sent an invite, and Player 2 hasn't declined yet
+                                else -> {
+                                    // Challenge Button
+                                    Button(
+                                        onClick = {
+                                            challengedPlayerId = playerId
+                                            model.db.collection("games")
+                                                .add(
+                                                    Game(
+                                                        gameState = "invite",
+                                                        player1Id = localPlayerId,
+                                                        player2Id = playerId
+                                                    )
+                                                )
+                                                .addOnSuccessListener {
+                                                    Log.d("Game", "Challenge sent to $playerId")
+                                                }
+                                                .addOnFailureListener {
+                                                    Log.e("Error", "Error sending challenge to $playerId")
+                                                }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = BabyPink
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Challenge",
+                                            color = Color.White,
+                                            style = androidx.compose.ui.text.TextStyle(
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -202,3 +279,5 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
         }
     }
 }
+
+
