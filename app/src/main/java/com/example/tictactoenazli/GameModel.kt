@@ -87,20 +87,26 @@ class GameModel: ViewModel() {
         // Column
         for (i in 0..2) {
             if (board[i] != 0 && board[i] == board[i + 3] && board[i] == board[i + 6]) {
+                val winnerId = if (board[i] == 1) gameMap.value[gameId]?.player1Id else gameMap.value[gameId]?.player2Id
+                winnerId?.let { updateScore(it) } //uppdaterar poäng om man vinner kolumn.
                 return board[i] // Return the winner (1 or 2)
             }
         }
 
         //Diagonal
         if (board[0] != 0 && board[0] == board[4] && board[0] == board[8]) {
+            val winnerId = if (board[0] == 1) gameMap.value[gameId]?.player1Id else gameMap.value[gameId]?.player2Id
+            winnerId?.let { updateScore(it) }//uppdaterar poäng om man vinner diagonal
             return board[0]
         }
         if (board[2] != 0 && board[2] == board[4] && board[2] == board[6]) {
+            val winnerId = if (board[2] == 1) gameMap.value[gameId]?.player1Id else gameMap.value[gameId]?.player2Id
+            winnerId?.let { updateScore(it) } //Andra hållet diagonal
             return board[2]
         }
 
         // If all cells are filled and there is no winner, it's a draw
-        if (board.none { it == 0 }) {
+        if (board.none { it == 0 }) {//Här uppdateras inte updateScore ingen får poäng vid draw.
             return -1 // Return -1 to indicate a draw
         }
 
