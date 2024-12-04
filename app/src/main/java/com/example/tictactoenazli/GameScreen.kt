@@ -65,7 +65,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
             if (gameState == "player1_won" || gameState == "player2_won" || gameState == "draw") {
                 isGameOver = true
                 delay(1500) // Delay
-                if (gameId != null && games.containsKey(gameId)) {
+                if (games.containsKey(gameId)) {
                     navController.navigate("resultScreen/$gameId")
                 }
             }
