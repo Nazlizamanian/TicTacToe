@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,10 +33,12 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @Composable
 fun ResultScreen(navController: NavController, model: GameModel, gameId: String?) {
+    //Obs hantera upd av dat med StateFlow,
+    //coolectAsStateWLifcycle för att omvandla stateFlow t kompatiblt tillstånd som updateras auto när data ändras.
     val players by model.playerMap.asStateFlow().collectAsStateWithLifecycle()
     val games by model.gameMap.asStateFlow().collectAsStateWithLifecycle()
 
-    val game = gameId?.let { games[it] }
+    val game = gameId?.let { games[it] } //Hämta gameID från listan av games där id = key
 
     if (game != null) {
         val player1Name = players[game.player1Id]?.name ?: "Player 1"
@@ -46,7 +47,7 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
         val player1Score = players[game.player1Id]?.score?: 0
         val player2Score = players[game.player2Id]?.score?:0
 
-        Column(
+        Column(//struktur av sidan
             modifier = Modifier
                 .fillMaxSize()
                 .background(BabyPink)
@@ -54,7 +55,7 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Display winner text
+            //Winnaren
             Text(
                 text = "Winner is ${if (game.gameState == "player1_won") player1Name
                 else if (game.gameState == "player2_won") player2Name
@@ -64,14 +65,14 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                 modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
             )
 
-            // Text-based Emojis and player names
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Player 1 Emoji
+                // Player 1
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
@@ -91,7 +92,7 @@ fun ResultScreen(navController: NavController, model: GameModel, gameId: String?
                     )
                 }
 
-                // Player 2 Emoji
+                // Player 2
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)

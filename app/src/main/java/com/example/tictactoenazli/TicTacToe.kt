@@ -43,17 +43,17 @@ fun TicTacToe() {
     val model = GameModel()
     model.initGame()
 
-//    val players by playerMap.asStateFlow().collectAsStateWithLifecycle()
-//    val games by gameMap.asStateFlow().collectAsStateWithLifecycle()
-
     NavHost(navController = navController, startDestination = Screen.NewPlayerScreen.route) {
-        composable(Screen.NewPlayerScreen.route) {
+        composable(Screen.NewPlayerScreen.route) { //Statiska vägar
             NewPlayerScreen(navController, model)
         }
 
         composable(Screen.LobbyScreen.route) {
             LobbyScreen(navController, model)
         }
+
+        //Hämtar värden för arg frå BackStackEntry arg
+        //varje gång ny compsable skärm lägggs t navstack, skapas ny backstackEntry obj för o håll info om skämr o tillstånd.
         composable("${Screen.GameScreen.route}/{gameId}") { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString("gameId")
             GameScreen(navController, model, gameId)
@@ -63,10 +63,7 @@ fun TicTacToe() {
             val gameId = backStackEntry.arguments?.getString("gameId")
             ResultScreen(navController = navController, model = model, gameId = gameId)
         }
-        /*
-        composable(Screen.MainScreen.route) {
-            MainScreen(navController, model)
-        }*/
+
     }
 
 }
@@ -74,10 +71,11 @@ fun TicTacToe() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewPlayerScreen(navController: NavController, model: GameModel) {
+    //Används för att spara o hämnta playerID
     val sharedPreferences = LocalContext.current.getSharedPreferences("TicTacToePrefs", Context.MODE_PRIVATE)
 
-    // Check for playerId in SharedPreferences
-    LaunchedEffect(Unit) {
+    //Init en kouritin asynkron process
+    LaunchedEffect(Unit) { //kollar om spelaren redan finns isf -> lobby
         model.localPlayerId.value = sharedPreferences.getString("playerId", null)
         if (model.localPlayerId.value != null) {
             navController.navigate("lobby")
@@ -126,11 +124,11 @@ fun NewPlayerScreen(navController: NavController, model: GameModel) {
                     .background(Color.White, RoundedCornerShape(8.dp))
                     .clickable {
                         if (playerName.isNotBlank()) {
-                            // Create new player in Firestore
+                            //Skapar en ny instans av klassen Player med namn o lägg t i db som nytt dokumnet i kollection players.
                             val newPlayer = Player(name = playerName)
                             model.db.collection("players").add(newPlayer).addOnSuccessListener { documentRef ->
                                 val newPlayerId = documentRef.id
-                                // Save playerId in SharedPreferences
+                                //Hämta documentId autogenreerat av firestore o spara lokalt i playerID i sharedPreferences
                                 sharedPreferences.edit().putString("playerId", newPlayerId).apply()
                                 // Update local variable and navigate to lobby
                                 model.localPlayerId.value = newPlayerId
@@ -150,7 +148,3 @@ fun NewPlayerScreen(navController: NavController, model: GameModel) {
     }
 }
 
-
-
-
-//hhhhh

@@ -1,22 +1,7 @@
 package com.example.tictactoenazli
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,19 +9,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 //vår viewmodel som asvarig för vår data
 class GameModel: ViewModel() {
 
-    val db = Firebase.firestore
-    var localPlayerId = mutableStateOf<String?>(null)
+    val db = Firebase.firestore //Så kan interagera med db, realtidsdatabas i firebase.
+    var localPlayerId = mutableStateOf<String?>(null) //representera lokala spelare Id
+
+    //Obs listor över spelare o spel i realtid. kartor updateras dynamiskt
+    // UI reagerar på förädrningar i data utan att behöva hämta elr upd dem
     val playerMap = MutableStateFlow<Map<String, Player>>(emptyMap())
     val gameMap = MutableStateFlow<Map<String, Game>>(emptyMap())
 
     fun initGame() {
         // Listen for players
         db.collection("players")
+            //Lyssnar o triggas varje gång data i kollektion ändras
             .addSnapshotListener { value, error ->
                 if (error != null) {
                     return@addSnapshotListener
                 }
-                if (value != null) {
+                if (value != null) { //Upd playerMap konvertera t player-instans o tilldela unik documentId
                     val updatedMap = value.documents.associate { doc ->
                         doc.id to doc.toObject(Player::class.java)!!
                     }
@@ -59,15 +48,15 @@ class GameModel: ViewModel() {
             }
     }
 
+    //Uppdatera poäng i spelet.
     fun updateScore(winnerId: String) {
-        // Get the winner player from the database and increment their score
         db.collection("players").document(winnerId)
             .get()
             .addOnSuccessListener { document ->
                 val player = document.toObject(Player::class.java)
                 if (player != null) {
+                    //skapa 1 kopia lägg till 1 poäng sedan tbx t db med updaterade scores
                     val updatedPlayer = player.copy(score = player.score + 1)
-                    // Update the player's score in Firestore
                     db.collection("players").document(winnerId).set(updatedPlayer)
                 }
             }
@@ -79,7 +68,7 @@ class GameModel: ViewModel() {
         for (i in 0..2) {
             if (board[i * 3] != 0 && board[i * 3] == board[i * 3 + 1] && board[i * 3] == board[i * 3 + 2]) {
                 val winnerId = if (board[i * 3] == 1) gameMap.value[gameId]?.player1Id else gameMap.value[gameId]?.player2Id
-                winnerId?.let { updateScore(it) }
+                winnerId?.let { updateScore(it) } //Sätt winnerID t player1 elr 2 beroende på om de var 1,2
                 return board[i * 3]
             }
         }
@@ -141,7 +130,7 @@ class GameModel: ViewModel() {
                     2 -> turn = "player2_won"
                     -1 -> turn = "draw" //Om det är ingen vinnare.
                     0 -> {
-                        // No winner yet, change turn
+                        // Ongoing spel, change turn
                         turn = if (game.gameState == "player1_turn") "player2_turn" else "player1_turn"
                     }
                 }

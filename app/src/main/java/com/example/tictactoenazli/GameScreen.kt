@@ -1,6 +1,5 @@
 package com.example.tictactoenazli
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -92,10 +91,10 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                         modifier = Modifier.padding(8.dp)
                     )
                 } else {
-                    val opponentName = if (localPlayerId == game?.player1Id) {
-                        players[game?.player2Id]?.name
+                    val opponentName = if (localPlayerId == game.player1Id) {
+                        players[game.player2Id]?.name
                     } else {
-                        players[game?.player1Id]?.name
+                        players[game.player1Id]?.name
                     }
                     Text(
                         text = "${opponentName ?: "Opponents"}'s Turn",

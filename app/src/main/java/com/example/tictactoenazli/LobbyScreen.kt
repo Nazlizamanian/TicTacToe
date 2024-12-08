@@ -28,7 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -61,7 +60,7 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
     var showDeclineNotification by remember { mutableStateOf(false) }
     var declinedPlayerName by remember { mutableStateOf("") }
 
-    LaunchedEffect(games) {
+    LaunchedEffect(games) { //courotine körs varje gång game uppdateras, nav -> gameScreen
         games.forEach { (gameId, game) ->
             if ((game.player1Id == model.localPlayerId.value || game.player2Id == model.localPlayerId.value)
                 && (game.gameState == "player1_turn" || game.gameState == "player2_turn")
@@ -71,12 +70,13 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
         }
     }
 
+    //Ifall spelare inte kan hittas (fallback)
     var playerName = "Unknown?"
     players[model.localPlayerId.value]?.let {
         playerName = it.name
     }
 
-    Scaffold(
+    Scaffold( //Struktur av sidan
         topBar = {
             TopAppBar(
                 title = {
@@ -98,15 +98,15 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
             .background(BabyPink)
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
+            LazyColumn( //Har vertical scroll snyggare om det är massor av spelare.
                 modifier = Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
                     .background(BabyPink)
             ) {
                 items(players.entries.toList()) { (documentId, player) ->
-                    if (documentId != model.localPlayerId.value) {
-                        Box(
+                    if (documentId != model.localPlayerId.value) { //Iterera över all players.
+                        Box( //Varje spelare ruta med info & ikon etc.
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp, horizontal = 16.dp)
@@ -139,8 +139,9 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    var hasGame = false
+                                    var hasGame = false //Pågående inbjudan t alla spelare F ingen fått inbjudan än.
                                     games.forEach { (gameId, game) ->
+                                        //Lokalisera spelare t vår localPlayer o om andra spelare behandlats i iterationen
                                         if (game.player1Id == model.localPlayerId.value && game.player2Id == documentId && game.gameState == "invite") {
                                             Text(
                                                 text = "Waiting for ${player.name} to accept...",
@@ -150,10 +151,12 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                                 )
                                             )
                                             hasGame = true
+
+                                            //Spelare 2 skickat inbjudan t spelare1
                                         } else if (game.player2Id == model.localPlayerId.value && game.player1Id == documentId && game.gameState == "invite") {
                                             Row {
                                                 Button(
-                                                    onClick = {
+                                                    onClick = { //Om accept upd gameState o -> game
                                                         model.db.collection("games").document(gameId)
                                                             .update("gameState", "player1_turn")
                                                             .addOnSuccessListener {
@@ -170,7 +173,7 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
 
                                                 Spacer(modifier = Modifier.width(8.dp))
 
-                                                Button(
+                                                Button( //Decline Button upd gameState i db
                                                     onClick = {
                                                         model.db.collection("games").document(gameId)
                                                             .update("gameState", "declined")
@@ -224,6 +227,7 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                 }
             }
 
+            //Pop up fösnter för spelarens inbjudan som blev nekad :(.
             if (showDeclineNotification) {
                 Box(
                     modifier = Modifier
@@ -246,7 +250,8 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                 textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { showDeclineNotification = false }) {
+                            Button(colors = ButtonDefaults.buttonColors(containerColor = BabyPink),
+                                onClick = { showDeclineNotification = false }) {
                                 Text("Close")
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Icon(
@@ -255,7 +260,6 @@ fun LobbyScreen(navController: NavController, model: GameModel) {
                                     modifier = Modifier.size(20.dp),
                                     tint = Color.White
                                 )
-                              
 
                             }
                         }
