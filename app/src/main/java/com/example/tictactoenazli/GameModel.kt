@@ -102,46 +102,38 @@ class GameModel: ViewModel() {
         return 0   // If no winner, return 0 (no winner)
     }
 
-
-
     fun checkGameState(gameId: String?, cell: Int) {
-        if (gameId != null) {
-            val game: Game? = gameMap.value[gameId]
-            if (game != null) {
-                // Check if it's the player's turn
-                val myTurn = game.gameState == "player1_turn" && game.player1Id == localPlayerId.value ||
-                        game.gameState == "player2_turn" && game.player2Id == localPlayerId.value
-                if (!myTurn) return // It's not the player's turn, so return
+        if (gameId == null) return
 
-                val list: MutableList<Int> = game.gameBoard.toMutableList()
+        val game = gameMap.value[gameId] ?: return
 
-                // Place the current player's move on the board
-                if (game.gameState == "player1_turn") {
-                    list[cell] = 1
-                } else if (game.gameState == "player2_turn") {
-                    list[cell] = 2
-                }
+        // Kontrollera om det är spelarens tur
+        val isPlayer1Turn = game.gameState == "player1_turn" && game.player1Id == localPlayerId.value
+        val isPlayer2Turn = game.gameState == "player2_turn" && game.player2Id == localPlayerId.value
+        if (!(isPlayer1Turn || isPlayer2Turn)) return
 
-                val winner = checkWinner(gameId, list)
+        // Kontrollera om cellen är tom  om redan är markerad av en spelare
+        if (game.gameBoard[cell] != 0) return
 
-                var turn = ""
-                when (winner) {
-                    1 -> turn = "player1_won"
-                    2 -> turn = "player2_won"
-                    -1 -> turn = "draw" //Om det är ingen vinnare.
-                    0 -> {
-                        // Ongoing spel, change turn
-                        turn = if (game.gameState == "player1_turn") "player2_turn" else "player1_turn"
-                    }
-                }
+        // Uppdatera spelbrädet med spelarens drag
+        val updatedBoard = game.gameBoard.toMutableList()
+        updatedBoard[cell] = if (isPlayer1Turn) 1 else 2
 
-                // Update the game state and game board in the database
-                db.collection("games").document(gameId)
-                    .update(
-                        "gameBoard", list,
-                        "gameState", turn
-                    )
-            }
+        // Kontrollera vinnare eller oavgjort
+        val winner = checkWinner(gameId, updatedBoard)
+        val newGameState = when (winner) {
+            1 -> "player1_won"
+            2 -> "player2_won"
+            -1 -> "draw" // Oavgjort
+            else -> if (isPlayer1Turn) "player2_turn" else "player1_turn" // Nästa spelares tur
         }
+
+        // Uppdatera databasen
+        db.collection("games").document(gameId)
+            .update(
+                "gameBoard", updatedBoard,
+                "gameState", newGameState
+            )
     }
+
 }

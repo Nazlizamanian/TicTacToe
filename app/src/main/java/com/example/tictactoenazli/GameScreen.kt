@@ -182,15 +182,7 @@ fun GameScreen(navController: NavController, model: GameModel, gameId: String?) 
                             .background(color = Color.White, RoundedCornerShape(13.dp))
                             .border(1.dp, color = Color.White, RoundedCornerShape(13.dp))
                             .clickable {
-                                val game = games[gameId] ?: return@clickable
-                                val playerId = model.localPlayerId.value
-
-                                if (game.gameBoard[index] == 0 &&
-                                    ((game.gameState == "player1_turn" && playerId == game.player1Id) ||
-                                            (game.gameState == "player2_turn" && playerId == game.player2Id))
-                                ) {
-                                    model.checkGameState(gameId, index)
-                                }
+                                model.checkGameState(gameId, index)
                             }
                     ) {
                         Text(
